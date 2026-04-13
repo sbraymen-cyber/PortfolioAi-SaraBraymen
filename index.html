@@ -7,435 +7,106 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1c1c1c;
-    --border: rgba(255,255,255,0.08);
-    --text: #f0ede8;
-    --muted: rgba(240,237,232,0.45);
-    --accent: #c8b89a;
-    --glow: rgba(200,184,154,0.15);
+    --bg: #0a0a0a; --surface: #141414; --surface2: #1c1c1c;
+    --border: rgba(255,255,255,0.08); --text: #f0ede8;
+    --muted: rgba(240,237,232,0.45); --accent: #c8b89a;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #050505; color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
-  body {
-    background: #050505;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
+  .ambient { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .ambient::before { content: ''; position: absolute; top: -20%; left: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, rgba(200,184,154,0.06) 0%, transparent 70%); animation: d1 8s ease-in-out infinite alternate; }
+  .ambient::after { content: ''; position: absolute; bottom: -20%; right: -10%; width: 50%; height: 50%; background: radial-gradient(ellipse, rgba(180,160,200,0.05) 0%, transparent 70%); animation: d2 10s ease-in-out infinite alternate; }
+  @keyframes d1 { to { transform: translate(4%,6%) scale(1.1); } }
+  @keyframes d2 { to { transform: translate(-4%,-4%) scale(1.08); } }
 
-  .ambient {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .ambient::before {
-    content: '';
-    position: absolute;
-    top: -20%; left: -10%;
-    width: 60%; height: 60%;
-    background: radial-gradient(ellipse, rgba(200,184,154,0.06) 0%, transparent 70%);
-    animation: drift1 8s ease-in-out infinite alternate;
-  }
-  .ambient::after {
-    content: '';
-    position: absolute;
-    bottom: -20%; right: -10%;
-    width: 50%; height: 50%;
-    background: radial-gradient(ellipse, rgba(180,160,200,0.05) 0%, transparent 70%);
-    animation: drift2 10s ease-in-out infinite alternate;
-  }
-  @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(4%,6%) scale(1.1); } }
-  @keyframes drift2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-4%,-4%) scale(1.08); } }
+  .phone { position: relative; z-index: 1; width: 375px; height: 812px; background: var(--surface); border-radius: 50px; border: 1.5px solid var(--border); box-shadow: 0 0 0 1px rgba(0,0,0,0.8), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06); overflow: hidden; display: flex; flex-direction: column; animation: fu 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes fu { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
-  .grain {
-    position: fixed; inset: 0;
-    pointer-events: none; z-index: 2; opacity: 0.025;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 200px;
-  }
+  .notch { width: 120px; height: 34px; background: var(--bg); border-radius: 0 0 20px 20px; margin: 0 auto; flex-shrink: 0; }
+  .status { display: flex; justify-content: space-between; padding: 4px 28px 0; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .home-indicator { width: 134px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 8px auto 12px; flex-shrink: 0; }
+  .screens-wrap { flex: 1; position: relative; overflow: hidden; }
 
-  /* Phone */
-  .phone {
-    position: relative; z-index: 1;
-    width: 375px; height: 812px;
-    background: var(--surface);
-    border-radius: 50px;
-    border: 1.5px solid var(--border);
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.8), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
-  }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; transition: opacity 0.4s, transform 0.4s cubic-bezier(0.16,1,0.3,1); pointer-events: none; opacity: 0; transform: translateY(20px); }
+  .screen.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+  .screen.exit { opacity: 0; transform: translateY(-20px); }
 
-  .notch {
-    width: 120px; height: 34px;
-    background: var(--bg);
-    border-radius: 0 0 20px 20px;
-    margin: 0 auto; flex-shrink: 0;
-  }
+  /* SCREENSAVER */
+  #ss { background: #000; cursor: pointer; }
+  #ss-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ss-hint { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 0.1em; text-transform: uppercase; animation: blink 3s ease-in-out infinite; white-space: nowrap; }
+  @keyframes blink { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
 
-  .status {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 28px 0;
-    font-size: 12px; font-weight: 500; color: var(--muted);
-    flex-shrink: 0;
-  }
-
-  .home-indicator {
-    width: 134px; height: 5px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 3px;
-    margin: 8px auto 12px; flex-shrink: 0;
-  }
-
-  /* ============ SCREEN SYSTEM ============ */
-  .screen {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  .screen.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: all;
-  }
-  .screen.exit {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-
-  .screens-wrap {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* ============ SCREENSAVER ============ */
-  #screensaver-screen {
-    background: #000;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  #screensaver-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .screensaver-hint {
-    position: absolute;
-    bottom: 60px;
-    font-size: 11px;
-    color: rgba(255,255,255,0.2);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    animation: fadeHint 3s ease-in-out infinite;
-  }
-
-  @keyframes fadeHint {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 1; }
-  }
-
-  /* ============ SCREENSAVER ============ */
-  #screensaver-screen {
-    background: #000;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  #screensaver-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .screensaver-hint {
-    position: absolute;
-    bottom: 60px;
-    font-size: 11px;
-    color: rgba(255,255,255,0.2);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    animation: fadeHint 3s ease-in-out infinite;
-  }
-
-  @keyframes fadeHint {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 1; }
-  }
-
-  /* ============ INTRO SCREEN ============ */
-  #intro-screen {
-    background: var(--surface);
-    align-items: center;
-    justify-content: center;
-    padding: 0 32px 48px;
-    gap: 0;
-  }
-
-  .orb-wrap {
-    position: relative;
-    width: 140px; height: 140px;
-    margin-bottom: 36px;
-  }
-
-  .orb {
-    width: 140px; height: 140px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(240,237,232,0.15) 0%, rgba(200,184,154,0.12) 30%, rgba(180,160,200,0.08) 60%, transparent 100%);
-    border: 1px solid rgba(200,184,154,0.2);
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    animation: breathe 4s ease-in-out infinite;
-  }
-  @keyframes breathe {
-    0%,100% { transform: scale(1); box-shadow: 0 0 40px rgba(200,184,154,0.1), 0 0 80px rgba(200,184,154,0.05); }
-    50% { transform: scale(1.04); box-shadow: 0 0 60px rgba(200,184,154,0.18), 0 0 120px rgba(200,184,154,0.08); }
-  }
-
-  .ring {
-    position: absolute; border-radius: 50%;
-    border: 1px solid rgba(200,184,154,0.12);
-    animation: expand 3s ease-out infinite;
-  }
-  .ring:nth-child(1) { width: 160px; height: 160px; top: -10px; left: -10px; animation-delay: 0s; }
+  /* INTRO */
+  #intro { background: var(--surface); align-items: center; justify-content: center; padding: 0 32px 48px; }
+  .orb-wrap { position: relative; width: 140px; height: 140px; margin-bottom: 36px; }
+  .orb { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(240,237,232,0.15) 0%, rgba(200,184,154,0.12) 30%, rgba(180,160,200,0.08) 60%, transparent 100%); border: 1px solid rgba(200,184,154,0.2); display: flex; align-items: center; justify-content: center; animation: breathe 4s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { box-shadow: 0 0 40px rgba(200,184,154,0.1); } 50% { transform: scale(1.04); box-shadow: 0 0 60px rgba(200,184,154,0.18); } }
+  .ring { position: absolute; border-radius: 50%; border: 1px solid rgba(200,184,154,0.12); animation: expand 3s ease-out infinite; }
+  .ring:nth-child(1) { width: 160px; height: 160px; top: -10px; left: -10px; }
   .ring:nth-child(2) { width: 185px; height: 185px; top: -22.5px; left: -22.5px; animation-delay: 0.8s; }
   .ring:nth-child(3) { width: 210px; height: 210px; top: -35px; left: -35px; animation-delay: 1.6s; }
   @keyframes expand { 0% { opacity: 0.4; transform: scale(0.95); } 100% { opacity: 0; transform: scale(1.05); } }
-
   .wave { display: flex; align-items: center; gap: 3px; height: 32px; }
-  .bar { width: 3px; background: var(--accent); border-radius: 2px; animation: wave-anim 1.2s ease-in-out infinite; }
-  .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
-  .bar:nth-child(2) { height: 18px; animation-delay: 0.15s; }
-  .bar:nth-child(3) { height: 28px; animation-delay: 0.3s; }
-  .bar:nth-child(4) { height: 20px; animation-delay: 0.45s; }
-  .bar:nth-child(5) { height: 12px; animation-delay: 0.6s; }
-  .bar:nth-child(6) { height: 24px; animation-delay: 0.75s; }
-  .bar:nth-child(7) { height: 14px; animation-delay: 0.9s; }
-  @keyframes wave-anim { 0%,100% { transform: scaleY(0.5); opacity: 0.6; } 50% { transform: scaleY(1); opacity: 1; } }
-
-  .label {
-    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--accent); font-weight: 500; margin-bottom: 12px;
-  }
-
-  .headline {
-    font-family: 'Instrument Serif', serif;
-    font-size: 38px; line-height: 1.1;
-    text-align: center; color: var(--text);
-    margin-bottom: 16px;
-  }
+  .bar { width: 3px; background: var(--accent); border-radius: 2px; animation: wa 1.2s ease-in-out infinite; }
+  .bar:nth-child(1){height:8px} .bar:nth-child(2){height:18px;animation-delay:.15s} .bar:nth-child(3){height:28px;animation-delay:.3s} .bar:nth-child(4){height:20px;animation-delay:.45s} .bar:nth-child(5){height:12px;animation-delay:.6s} .bar:nth-child(6){height:24px;animation-delay:.75s} .bar:nth-child(7){height:14px;animation-delay:.9s}
+  @keyframes wa { 0%,100% { transform: scaleY(0.5); opacity: 0.6; } 50% { transform: scaleY(1); opacity: 1; } }
+  .ilabel { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 12px; }
+  .headline { font-family: 'Instrument Serif', serif; font-size: 38px; line-height: 1.1; text-align: center; margin-bottom: 16px; }
   .headline em { font-style: italic; color: var(--accent); }
-
-  .subtext {
-    font-size: 14px; color: var(--muted);
-    text-align: center; line-height: 1.6;
-    max-width: 260px; margin-bottom: 40px;
-  }
-
-  .cta {
-    width: 100%; max-width: 280px;
-    padding: 16px 24px;
-    background: var(--accent); color: #0a0a0a;
-    border: none; border-radius: 100px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px; font-weight: 500;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: all 0.2s ease;
-    margin-bottom: 16px;
-  }
+  .subtext { font-size: 14px; color: var(--muted); text-align: center; line-height: 1.6; max-width: 260px; margin-bottom: 40px; }
+  .cta { width: 100%; max-width: 280px; padding: 16px 24px; background: var(--accent); color: #0a0a0a; border: none; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; margin-bottom: 16px; }
   .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200,184,154,0.3); }
-  .cta:active { transform: translateY(0); }
-
-  .cta-dot {
-    width: 6px; height: 6px;
-    background: #0a0a0a; border-radius: 50%;
-    animation: pulse-dot 1.5s ease-in-out infinite;
-  }
-  @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
-
-  .skip {
-    font-size: 13px; color: var(--muted);
-    cursor: pointer; background: none; border: none;
-    font-family: 'DM Sans', sans-serif;
-    transition: color 0.2s;
-  }
+  .cta-dot { width: 6px; height: 6px; background: #0a0a0a; border-radius: 50%; animation: pd 1.5s ease-in-out infinite; }
+  @keyframes pd { 0%,100% { opacity: 1; } 50% { opacity: 0.5; transform: scale(0.8); } }
+  .skip { font-size: 13px; color: var(--muted); cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; transition: color 0.2s; }
   .skip:hover { color: var(--text); }
 
-  /* ============ CHAT SCREEN ============ */
-  #chat-screen {
-    background: var(--surface);
-    flex-direction: column;
-  }
-
-  .chat-header {
-    background: var(--bg);
-    padding: 12px 20px 14px;
-    display: flex; align-items: center; gap: 12px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .back-btn {
-    background: none; border: none;
-    color: var(--accent); cursor: pointer;
-    font-size: 20px; padding: 4px;
-    display: flex; align-items: center;
-  }
-
-  .chat-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(200,184,154,0.3), rgba(180,160,200,0.2));
-    border: 1px solid rgba(200,184,154,0.3);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-
+  /* CHAT */
+  #chat { background: var(--surface); }
+  .chat-header { background: var(--bg); padding: 12px 20px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .back-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 22px; padding: 4px; line-height: 1; }
+  .chat-av { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(200,184,154,0.3), rgba(180,160,200,0.2)); border: 1px solid rgba(200,184,154,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .chat-info { flex: 1; }
-  .chat-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .chat-name { font-size: 14px; font-weight: 500; }
   .chat-status { font-size: 11px; color: var(--accent); margin-top: 1px; }
-
-  #messages {
-    flex: 1; overflow-y: auto;
-    padding: 16px; display: flex;
-    flex-direction: column; gap: 10px;
-    background: #0f0f0f;
-  }
-
+  #messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0f0f0f; }
   #messages::-webkit-scrollbar { width: 0; }
-
-  .message {
-    max-width: 82%;
-    padding: 10px 14px;
-    border-radius: 16px;
-    font-size: 13px; line-height: 1.5;
-  }
-
-  .message.assistant {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-    color: var(--text);
-  }
-
-  .message.user {
-    background: var(--accent);
-    color: #0a0a0a;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-    font-weight: 500;
-  }
-
-  .message.thinking {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    align-self: flex-start;
-    color: var(--muted);
-    font-style: italic;
-    font-size: 12px;
-  }
-
-  .suggestions-row {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-top: 6px;
-  }
-
-  .chip {
-    background: rgba(200,184,154,0.1);
-    border: 1px solid rgba(200,184,154,0.2);
-    border-radius: 100px;
-    padding: 5px 10px;
-    font-size: 11px; color: var(--accent);
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
+  .msg { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
+  .msg.ai { background: var(--surface2); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.me { background: var(--accent); color: #0a0a0a; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+  .msg.thinking { background: var(--surface2); border: 1px solid var(--border); align-self: flex-start; color: var(--muted); font-style: italic; font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { background: rgba(200,184,154,0.1); border: 1px solid rgba(200,184,154,0.2); border-radius: 100px; padding: 5px 10px; font-size: 11px; color: var(--accent); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; white-space: nowrap; }
   .chip:hover { background: rgba(200,184,154,0.2); }
-
-  .input-area {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
-    display: flex; gap: 8px;
-    background: var(--surface);
-    flex-shrink: 0;
-  }
-
-  #user-input {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 10px 14px;
-    font-size: 13px; color: var(--text);
-    outline: none; resize: none;
-    font-family: 'DM Sans', sans-serif;
-    line-height: 1.4;
-  }
+  .input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: var(--surface); flex-shrink: 0; }
+  #user-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 10px 14px; font-size: 13px; color: var(--text); outline: none; resize: none; font-family: 'DM Sans', sans-serif; line-height: 1.4; }
   #user-input::placeholder { color: var(--muted); }
   #user-input:focus { border-color: rgba(200,184,154,0.4); }
-
-  #send-btn {
-    background: var(--accent); color: #0a0a0a;
-    border: none; border-radius: 50%;
-    width: 38px; height: 38px;
-    cursor: pointer; font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; flex-shrink: 0;
-    align-self: flex-end;
-  }
+  #send-btn { background: var(--accent); color: #0a0a0a; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; align-self: flex-end; }
   #send-btn:hover { transform: scale(1.05); }
   #send-btn:disabled { background: rgba(200,184,154,0.3); cursor: not-allowed; }
 </style>
 </head>
 <body>
-
 <div class="ambient"></div>
-<div class="grain"></div>
 
 <div class="phone">
   <div class="notch"></div>
-  <div class="status">
-    <span>9:41</span>
-    <span>●●●</span>
-  </div>
-
+  <div class="status"><span>9:41</span><span>●●●</span></div>
   <div class="screens-wrap">
 
-    <!-- SCREENSAVER SCREEN -->
-    <div class="screen" id="screensaver-screen" onclick="goToIntro()">
-      <canvas id="screensaver-canvas"></canvas>
-      <div class="screensaver-hint">tap to return</div>
+    <!-- SCREENSAVER -->
+    <div class="screen" id="ss" onclick="showIntro()">
+      <canvas id="ss-canvas"></canvas>
+      <div class="ss-hint">tap to return</div>
     </div>
 
-    <!-- INTRO SCREEN -->
-    <div class="screen active" id="intro-screen">
+    <!-- INTRO -->
+    <div class="screen active" id="intro">
       <div class="orb-wrap">
-        <div class="ring"></div>
-        <div class="ring"></div>
-        <div class="ring"></div>
+        <div class="ring"></div><div class="ring"></div><div class="ring"></div>
         <div class="orb">
           <div class="wave">
             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -444,342 +115,188 @@
           </div>
         </div>
       </div>
-
-      <div class="label">Portfolio AI · Sara Braymen</div>
+      <div class="ilabel">Portfolio AI · Sara Braymen</div>
       <h1 class="headline">Ask me <em>anything</em><br>about Sara</h1>
       <p class="subtext">I'm an AI trained on Sara's work, background, and what she's building. Let's talk.</p>
-
-      <button class="cta" onclick="goToChat()">
-        <div class="cta-dot"></div>
-        Start conversation
-      </button>
-      <button class="skip" onclick="goToScreensaver()">Maybe later →</button>
+      <button class="cta" onclick="showChat()"><div class="cta-dot"></div>Start conversation</button>
+      <button class="skip" onclick="showSS()">Maybe later →</button>
     </div>
 
-    <!-- CHAT SCREEN -->
-    <div class="screen" id="chat-screen">
+    <!-- CHAT -->
+    <div class="screen" id="chat">
       <div class="chat-header">
-        <button class="back-btn" onclick="goBack()">‹</button>
-        <div class="chat-avatar">✦</div>
+        <button class="back-btn" onclick="showIntro()">‹</button>
+        <div class="chat-av">✦</div>
         <div class="chat-info">
           <div class="chat-name">Sara's Portfolio AI</div>
           <div class="chat-status">● Online · Ask me anything</div>
         </div>
       </div>
-
       <div id="messages">
-        <div class="message assistant">
+        <div class="msg ai">
           Hi! I'm Sara's portfolio AI. I know everything about her work, background, and what she's building. What would you like to know? 👋
-          <div class="suggestions-row">
-            <button class="chip" onclick="sendChip('What does Sara specialize in?')">Her specialties</button>
-            <button class="chip" onclick="sendChip('Tell me about her AI experience')">AI experience</button>
-            <button class="chip" onclick="sendChip('What is Sar?')">What is Sar?</button>
-            <button class="chip" onclick="sendChip('What makes Sara unique as a designer?')">What makes her unique?</button>
+          <div class="chips">
+            <button class="chip" onclick="tap('spec')">Her specialties</button>
+            <button class="chip" onclick="tap('ai')">AI experience</button>
+            <button class="chip" onclick="tap('sar')">What is Sar?</button>
+            <button class="chip" onclick="tap('unique')">What makes her unique?</button>
           </div>
         </div>
       </div>
-
       <div class="input-area">
         <textarea id="user-input" placeholder="Ask about Sara..." rows="1" onkeydown="handleKey(event)"></textarea>
-        <button id="send-btn" onclick="sendMessage()">↑</button>
+        <button id="send-btn" onclick="send()">↑</button>
       </div>
     </div>
 
   </div>
-
   <div class="home-indicator"></div>
 </div>
 
 <script>
-// 🔧 REPLACE THIS with your Cloudflare Worker URL after setting it up
-const WORKER_URL = 'https://jolly-sun-c7c2.sarabraymen.workers.dev';
+const WORKER = 'https://jolly-sun-c7c2.sarabraymen.workers.dev';
 
-const HARDCODED = {
-  "What does Sara specialize in?": "Sara specializes in AI-powered UX design for enterprise SaaS platforms. She designs agentic workflows, conversational interfaces, and NLP-driven experiences — and uniquely combines a Accounting & MIS background with deep design craft. She's currently a Lead Product Designer at Evernorth (Fortune 15), designing for 100K+ users.",
-  "Tell me about her AI experience": "Sara has been designing AI-powered products since before it was trendy! At Evernorth she built agentic workflows and natural language interfaces that reduced manual search effort by 90%. She uses Claude, Cursor, and Figma Make in her daily workflow, and is currently enrolled in Brown University's MS in Innovation Management & Entrepreneurship.",
-  "What is Sar?": "Sar is Sara's own startup — an NFC-based digital receipt platform she's been building since 2019. It replaces paper receipts with a tap-to-save experience using NFC hardware and iOS. She designed the end-to-end iOS flows, built hardware prototypes with an ESP32 and NFC module, and integrated Apple Wallet PassKit and Supabase. It's incorporated as a Delaware C corp.",
-  "What makes Sara unique as a designer?": "Sara has a genuinely rare combination: a BS in Accounting + MIS from Iowa State, a UC Berkeley UX certificate (3.84 GPA), 6+ years of Fortune 15 enterprise experience, AND she's a startup founder. She thinks like a businessperson, designs like a craftsperson, and builds like an engineer. She's also an incoming Brown University MS candidate."
+const QUICK = {
+  spec: "Sara specializes in AI-powered UX design for enterprise SaaS platforms. She designs agentic workflows, conversational interfaces, and NLP-driven experiences — uniquely combining Accounting & MIS degrees with deep design craft. She's currently Lead Product Designer at Evernorth (Fortune 15), designing for 100K+ users.",
+  ai: "Sara has been designing AI-powered products since before it was trendy! At Evernorth she built agentic workflows and natural language interfaces that reduced manual search effort by 90%. She uses Claude, Cursor, and Figma Make daily, and is an incoming Brown University MS candidate in Innovation & Entrepreneurship.",
+  sar: "Sar is Sara's own startup — an NFC-based digital receipt platform she's been building since 2019. It replaces paper receipts with a tap-to-save experience using NFC hardware and iOS. She designed the end-to-end iOS flows, built hardware prototypes, and integrated Apple Wallet PassKit and Supabase. Incorporated as a Delaware C corp.",
+  unique: "Sara has a genuinely rare combination: BS in Accounting + MIS from Iowa State, UC Berkeley UX certificate (3.84 GPA), 6+ years Fortune 15 enterprise experience, AND she's a startup founder. She thinks like a businessperson, designs like a craftsperson, and builds like an engineer. Also an incoming Brown University MS candidate."
 };
 
-const SYSTEM_PROMPT = `You are a friendly, professional AI assistant embedded in Sara Braymen's UX design portfolio. Your job is to represent Sara in the best possible light to potential employers, collaborators, and clients.
+const CHIP_LABELS = {
+  spec: 'What does Sara specialize in?',
+  ai: 'Tell me about her AI experience',
+  sar: 'What is Sar?',
+  unique: 'What makes Sara unique?'
+};
 
-PROFESSIONAL SUMMARY:
-Sara Braymen is a Senior UX Designer and Product Strategist with 6+ years of experience designing AI-powered enterprise platforms. She combines a rare trifecta: a BS in Accounting and Management Information Systems from Iowa State, a UC Berkeley UX certificate (3.84 GPA), and an incoming MS in Innovation Management & Entrepreneurship from Brown University (Ivy League). She is currently a Lead Product Designer at Evernorth Health Services (a Cigna company, Fortune 15), designing for 100K+ users.
+const SYS = `You are a friendly AI assistant in Sara Braymen's UX design portfolio. Represent Sara professionally and positively.
 
-KEY EXPERIENCE:
-- Evernorth/Cigna (2022-present): Designing Broadstreet, a clinical intelligence platform using Neo4j graph databases, ArcGIS geospatial mapping, and AI-powered natural language interfaces that reduced manual search effort by 90%. She designs agentic workflows, conversational UI, and NLP-driven interfaces.
-- Horne LLP (2021-2022): Designed $300M FEMA emergency relief program dashboards using SQL and Power BI, enabling sub-1% fraud detection.
-- Sar (2019-present): Founder of an NFC-based digital receipt startup (Delaware C corp). Designed end-to-end iOS flows, built hardware prototypes with ESP32 and NFC modules, and integrated Apple Wallet PassKit and Supabase.
+Sara Braymen: Lead Product Designer at Evernorth/Cigna (Fortune 15), 6+ years UX. Designed Broadstreet — clinical AI platform for 100K+ users, Neo4j, ArcGIS, NLP, agentic workflows (90% search automation). Horne LLP: $300M FEMA dashboards, SQL/Power BI, sub-1% fraud detection. Founder of Sar — NFC digital receipt startup (Delaware C corp, 2019), ESP32 hardware, Apple Wallet, Supabase.
 
-EDUCATION:
-- Brown University, MS Innovation Management & Entrepreneurship (Expected 2028) — Ivy League
-- UC Berkeley Extension, UX Design Certificate (2021) — 3.84 GPA
-- Iowa State University, BS Management Information Systems & Accounting (2019)
+Education: Brown University MS Innovation & Entrepreneurship (2028, Ivy League), UC Berkeley UX Certificate 3.84 GPA (2021), Iowa State BS MIS & Accounting (2019).
 
-SKILLS:
-- Design: Figma (expert), design systems, interaction design, prototyping, user research, information architecture, accessibility (WCAG), data visualization, infographic design
-- AI/Product: Agentic workflow design, conversational UI, NLP interfaces, LLM integration, prompt engineering, Claude, Cursor, Figma Make
-- Technical: SQL, HTML/CSS/JS, DAX, ArcGIS, Power BI, Supabase, NFC hardware, REST APIs
-- Leadership: Cross-functional collaboration, stakeholder influence, mentorship, agile/scrum
+Skills: Figma, design systems, WCAG, data viz, ArcGIS, Power BI, SQL, HTML/CSS/JS, Supabase, NFC hardware, REST APIs, agentic workflow design, conversational UI, LLM integration, Claude, Cursor, Figma Make.
 
-WHAT MAKES SARA UNIQUE:
-- One of the few UX designers who also holds accounting and MIS degrees
-- Has designed AI-powered products before most designers were thinking about it
-- Founded her own startup (Sar) giving her real entrepreneurial experience
-- Has Fortune 15 enterprise experience AND startup founder experience
-- Incoming Ivy League graduate student at Brown University
+Rules: 2-4 sentence answers. Be warm and enthusiastic. Salary questions: "Sara would love to discuss that directly!" Contact: sarabraymen@gmail.com or sarabraymen.com. Never invent facts.`;
 
-PERSONALITY:
-Sara is confident, direct, curious, and deeply passionate about the intersection of design, technology, and business. She is a systems thinker who goes deep technically while keeping the user at the center.
+let history = [];
+let ssRunning = false;
+let raf;
 
-INSTRUCTIONS:
-- Always be positive, professional, and enthusiastic about Sara
-- Keep responses concise — 2-4 sentences max unless more detail is requested
-- If asked about salary, say "Sara would love to discuss that directly!"
-- If asked for contact info: sarabraymen@gmail.com or sarabraymen.com
-- Never make up information not provided above
-- Sound warm and human, not robotic`;
-
-let messages = [];
-let screensaverRunning = false;
-let animFrame;
-
-function goToScreensaver() {
-  document.getElementById('intro-screen').classList.remove('active');
-  document.getElementById('intro-screen').classList.add('exit');
+function go(fromId, toId, cb) {
+  const from = document.getElementById(fromId);
+  const to = document.getElementById(toId);
+  from.classList.remove('active');
+  from.classList.add('exit');
   setTimeout(() => {
-    document.getElementById('intro-screen').classList.remove('exit');
-    document.getElementById('screensaver-screen').classList.add('active');
-    startScreensaver();
-  }, 300);
+    from.classList.remove('exit');
+    to.classList.add('active');
+    if (cb) cb();
+  }, 400);
 }
 
-function startScreensaver() {
-  if (screensaverRunning) return;
-  screensaverRunning = true;
-  const canvas = document.getElementById('screensaver-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 375;
-  canvas.height = 812;
-  const dots = Array.from({ length: 6 }, (_, i) => ({
-    x: Math.random() * 375, y: Math.random() * 812,
-    vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
-    r: 8 + Math.random() * 8, hue: 30 + i * 30, trail: []
-  }));
-  function draw() {
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(0, 0, 375, 812);
-    dots.forEach(dot => {
-      dot.trail.push({ x: dot.x, y: dot.y });
-      if (dot.trail.length > 20) dot.trail.shift();
-      dot.trail.forEach((point, i) => {
-        const alpha = i / dot.trail.length * 0.4;
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, dot.r * (i / dot.trail.length), 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${dot.hue}, 60%, 70%, ${alpha})`;
-        ctx.fill();
-      });
-      ctx.beginPath();
-      ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
-      const grad = ctx.createRadialGradient(dot.x - dot.r * 0.3, dot.y - dot.r * 0.3, 0, dot.x, dot.y, dot.r);
-      grad.addColorStop(0, `hsla(${dot.hue}, 80%, 90%, 1)`);
-      grad.addColorStop(1, `hsla(${dot.hue}, 60%, 50%, 0.8)`);
-      ctx.fillStyle = grad;
-      ctx.fill();
-      dot.x += dot.vx; dot.y += dot.vy;
-      if (dot.x - dot.r < 0 || dot.x + dot.r > 375) { dot.vx *= -1; dot.hue += 20; }
-      if (dot.y - dot.r < 0 || dot.y + dot.r > 812) { dot.vy *= -1; dot.hue += 20; }
-    });
-    animFrame = requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-function stopScreensaver() {
-  screensaverRunning = false;
-  cancelAnimationFrame(animFrame);
-}
-
-function goToScreensaver() {
-  document.getElementById('intro-screen').classList.remove('active');
-  document.getElementById('intro-screen').classList.add('exit');
-  setTimeout(() => {
-    document.getElementById('intro-screen').classList.remove('exit');
-    document.getElementById('screensaver-screen').classList.add('active');
-    startScreensaver();
-  }, 300);
-}
-
-let screensaverRunning = false;
-let animFrame;
-
-function startScreensaver() {
-  if (screensaverRunning) return;
-  screensaverRunning = true;
-
-  const canvas = document.getElementById('screensaver-canvas');
-  const ctx = canvas.getContext('2d');
-
-  canvas.width = 375;
-  canvas.height = 812;
-
-  const dots = Array.from({ length: 6 }, (_, i) => ({
-    x: Math.random() * 375,
-    y: Math.random() * 812,
-    vx: (Math.random() - 0.5) * 3,
-    vy: (Math.random() - 0.5) * 3,
-    r: 8 + Math.random() * 8,
-    hue: 30 + i * 30,
-    trail: []
-  }));
-
-  function draw() {
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(0, 0, 375, 812);
-
-    dots.forEach(dot => {
-      dot.trail.push({ x: dot.x, y: dot.y });
-      if (dot.trail.length > 20) dot.trail.shift();
-
-      // Draw trail
-      dot.trail.forEach((point, i) => {
-        const alpha = i / dot.trail.length * 0.4;
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, dot.r * (i / dot.trail.length), 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${dot.hue}, 60%, 70%, ${alpha})`;
-        ctx.fill();
-      });
-
-      // Draw dot
-      ctx.beginPath();
-      ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
-      const grad = ctx.createRadialGradient(dot.x - dot.r * 0.3, dot.y - dot.r * 0.3, 0, dot.x, dot.y, dot.r);
-      grad.addColorStop(0, `hsla(${dot.hue}, 80%, 90%, 1)`);
-      grad.addColorStop(1, `hsla(${dot.hue}, 60%, 50%, 0.8)`);
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Move
-      dot.x += dot.vx;
-      dot.y += dot.vy;
-
-      // Bounce
-      if (dot.x - dot.r < 0 || dot.x + dot.r > 375) { dot.vx *= -1; dot.hue += 20; }
-      if (dot.y - dot.r < 0 || dot.y + dot.r > 812) { dot.vy *= -1; dot.hue += 20; }
-    });
-
-    animFrame = requestAnimationFrame(draw);
-  }
-
-  draw();
-}
-
-function stopScreensaver() {
-  screensaverRunning = false;
-  cancelAnimationFrame(animFrame);
-}
-
-function goToIntro() {
-  stopScreensaver();
+function showSS() { go('intro', 'ss', startSS); }
+function showChat() { go('intro', 'chat'); }
+function showIntro() {
+  stopSS();
   const active = document.querySelector('.screen.active');
-  if (active) {
-    active.classList.remove('active');
-    active.classList.add('exit');
-    setTimeout(() => active.classList.remove('exit'), 300);
-  }
-  setTimeout(() => {
-    document.getElementById('intro-screen').classList.add('active');
-  }, 50);
+  if (active && active.id !== 'intro') go(active.id, 'intro');
 }
 
-function goToChat() {
-  document.getElementById('intro-screen').classList.remove('active');
-  document.getElementById('intro-screen').classList.add('exit');
-  setTimeout(() => {
-    document.getElementById('intro-screen').classList.remove('exit');
-    document.getElementById('chat-screen').classList.add('active');
-  }, 300);
+function startSS() {
+  if (ssRunning) return;
+  ssRunning = true;
+  const canvas = document.getElementById('ss-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 375; canvas.height = 812;
+  const dots = Array.from({length: 6}, (_, i) => ({
+    x: 50 + Math.random() * 275, y: 50 + Math.random() * 712,
+    vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+    r: 8 + Math.random() * 8, hue: i * 55, trail: []
+  }));
+  (function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(0, 0, 375, 812);
+    dots.forEach(d => {
+      d.trail.push({x: d.x, y: d.y});
+      if (d.trail.length > 22) d.trail.shift();
+      d.trail.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, d.r * (i / d.trail.length), 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${d.hue},65%,65%,${i / d.trail.length * 0.35})`;
+        ctx.fill();
+      });
+      const g = ctx.createRadialGradient(d.x-d.r*0.3, d.y-d.r*0.3, 0, d.x, d.y, d.r);
+      g.addColorStop(0, `hsla(${d.hue},80%,92%,1)`);
+      g.addColorStop(1, `hsla(${d.hue},60%,50%,0.85)`);
+      ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      ctx.fillStyle = g; ctx.fill();
+      d.x += d.vx; d.y += d.vy;
+      if (d.x-d.r<0||d.x+d.r>375){d.vx*=-1;d.hue=(d.hue+25)%360;}
+      if (d.y-d.r<0||d.y+d.r>812){d.vy*=-1;d.hue=(d.hue+25)%360;}
+    });
+    raf = requestAnimationFrame(draw);
+  })();
 }
 
-function goBack() {
-  document.getElementById('chat-screen').classList.remove('active');
-  document.getElementById('chat-screen').classList.add('exit');
+function stopSS() { ssRunning = false; cancelAnimationFrame(raf); }
+
+function tap(key) {
+  const label = CHIP_LABELS[key];
+  addMsg('me', label);
+  history.push({role: 'user', content: label});
   setTimeout(() => {
-    document.getElementById('chat-screen').classList.remove('exit');
-    document.getElementById('intro-screen').classList.add('active');
-  }, 300);
+    addMsg('ai', QUICK[key]);
+    history.push({role: 'assistant', content: QUICK[key]});
+  }, 500);
 }
 
 function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 }
 
-function sendChip(text) {
-  if (HARDCODED[text]) {
-    addMessage('user', text);
-    messages.push({ role: 'user', content: text });
-    setTimeout(() => {
-      addMessage('assistant', HARDCODED[text]);
-      messages.push({ role: 'assistant', content: HARDCODED[text] });
-    }, 600);
-  } else {
-    document.getElementById('user-input').value = text;
-    sendMessage();
-  }
-}
-
-async function sendMessage() {
-  const input = document.getElementById('user-input');
-  const text = input.value.trim();
+async function send() {
+  const inp = document.getElementById('user-input');
+  const text = inp.value.trim();
   if (!text) return;
-
-  input.value = '';
-  addMessage('user', text);
-  messages.push({ role: 'user', content: text });
-
-  const sendBtn = document.getElementById('send-btn');
-  sendBtn.disabled = true;
-
-  const thinking = addMessage('thinking', '...');
-
+  inp.value = '';
+  addMsg('me', text);
+  history.push({role: 'user', content: text});
+  document.getElementById('send-btn').disabled = true;
+  const t = addMsg('thinking', '...');
   try {
-    const response = await fetch(WORKER_URL, {
+    const res = await fetch(WORKER, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: messages
+        max_tokens: 400,
+        system: SYS,
+        messages: history
       })
     });
-
-    const data = await response.json();
-    const reply = data.content[0].text;
-    thinking.remove();
-    addMessage('assistant', reply);
-    messages.push({ role: 'assistant', content: reply });
-
-  } catch (err) {
-    thinking.remove();
-    addMessage('assistant', 'Something went wrong! Reach Sara at sarabraymen@gmail.com 💌');
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "Reach Sara at sarabraymen@gmail.com!";
+    t.remove();
+    addMsg('ai', reply);
+    history.push({role: 'assistant', content: reply});
+  } catch {
+    t.remove();
+    addMsg('ai', "Something went wrong! Reach Sara at sarabraymen@gmail.com 💌");
   }
-
-  sendBtn.disabled = false;
-  input.focus();
+  document.getElementById('send-btn').disabled = false;
+  inp.focus();
 }
 
-function addMessage(role, text) {
+function addMsg(cls, text) {
   const msgs = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = `message ${role}`;
-  div.textContent = text;
-  msgs.appendChild(div);
+  const d = document.createElement('div');
+  d.className = `msg ${cls}`;
+  d.textContent = text;
+  msgs.appendChild(d);
   msgs.scrollTop = msgs.scrollHeight;
-  return div;
+  return d;
 }
 </script>
 </body>
