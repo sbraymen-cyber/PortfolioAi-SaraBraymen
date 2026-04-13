@@ -425,6 +425,13 @@
 </div>
 
 <script>
+const HARDCODED = {
+  "What does Sara specialize in?": "Sara specializes in AI-powered UX design for enterprise SaaS platforms. She designs agentic workflows, conversational interfaces, and NLP-driven experiences — and uniquely combines a Accounting & MIS background with deep design craft. She's currently a Lead Product Designer at Evernorth (Fortune 15), designing for 100K+ users.",
+  "Tell me about her AI experience": "Sara has been designing AI-powered products since before it was trendy! At Evernorth she built agentic workflows and natural language interfaces that reduced manual search effort by 90%. She uses Claude, Cursor, and Figma Make in her daily workflow, and is currently enrolled in Brown University's MS in Innovation Management & Entrepreneurship.",
+  "What is Sar?": "Sar is Sara's own startup — an NFC-based digital receipt platform she's been building since 2019. It replaces paper receipts with a tap-to-save experience using NFC hardware and iOS. She designed the end-to-end iOS flows, built hardware prototypes with an ESP32 and NFC module, and integrated Apple Wallet PassKit and Supabase. It's incorporated as a Delaware C corp.",
+  "What makes Sara unique as a designer?": "Sara has a genuinely rare combination: a BS in Accounting + MIS from Iowa State, a UC Berkeley UX certificate (3.84 GPA), 6+ years of Fortune 15 enterprise experience, AND she's a startup founder. She thinks like a businessperson, designs like a craftsperson, and builds like an engineer. She's also an incoming Brown University MS candidate."
+};
+
 const SYSTEM_PROMPT = `You are a friendly, professional AI assistant embedded in Sara Braymen's UX design portfolio. Your job is to represent Sara in the best possible light to potential employers, collaborators, and clients.
 
 PROFESSIONAL SUMMARY:
@@ -492,8 +499,17 @@ function handleKey(e) {
 }
 
 function sendChip(text) {
-  document.getElementById('user-input').value = text;
-  sendMessage();
+  if (HARDCODED[text]) {
+    addMessage('user', text);
+    messages.push({ role: 'user', content: text });
+    setTimeout(() => {
+      addMessage('assistant', HARDCODED[text]);
+      messages.push({ role: 'assistant', content: HARDCODED[text] });
+    }, 600);
+  } else {
+    document.getElementById('user-input').value = text;
+    sendMessage();
+  }
 }
 
 async function sendMessage() {
